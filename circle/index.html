@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Document</title>
+	<style>
+		*{
+			margin: 0;padding: 0;
+		}
+		.box {
+			padding:  50px;
+		}
+	</style>
+</head>
+<body>
+	<div class="box">
+		<canvas id='canvas' width=300 height=130></canvas>
+	</div>
+	<script>
+		// 公共方法
+		function getAngle(degree) {
+			return (Math.PI / 180) * degree
+		}
+		const canvas = document.querySelector('#canvas')
+		const ctx = canvas.getContext('2d')
+		// 定义默认值
+		const width = 300
+		const height = 130
+		// 度数
+		let start = 170,
+		  end = 10
+		const speed = 1
+		// 外圆
+		const outRadius = (width / 2 - 30) * 5
+		const insideRadius = (width / 2 - 50) * 5
+		// 弧度
+		const startAngle = getAngle(end),
+		  endAngle = getAngle(start)
+		// 动态的弧度
+		let dynamicStartAngle = start,
+		  dynamicEndAngle = start
+		const arcW = width / 2 * 5,
+		  arcH = height * 5
+		let ifDraw = true
+		canvas.width = width
+		canvas.height = height
+		ctx.lienJoin = 'round'
+		ctx.lineCap = 'round'
+		ctx.lineWidth = 1
+
+		function drawArc() {
+			ctx.save()
+			ctx.translate('50%', '50%')
+			ctx.scale(.2, .2)
+			ctx.beginPath()
+			ctx.arc(arcW, arcH, outRadius, startAngle, endAngle, true)
+			ctx.stroke()
+			ctx.arc(arcW, arcH, insideRadius, endAngle, startAngle, false)
+			ctx.closePath()
+			ctx.stroke()
+			ctx.fillStyle = 'red'
+			ctx.fill()
+			ctx.restore()
+		}
+		// 生成小块状的圆弧
+		function drawModuleArc() {
+			if (dynamicStartAngle === dynamicEndAngle) {
+				return
+			}
+			ctx.save()
+			ctx.translate('50%', '50%')
+			ctx.scale(.2, .2)
+			ctx.beginPath()
+			ctx.arc(arcW, arcH, outRadius, getAngle(dynamicStartAngle), getAngle(dynamicEndAngle), false)
+			ctx.stroke()
+			ctx.arc(arcW, arcH, insideRadius, getAngle(dynamicEndAngle), getAngle(dynamicStartAngle), true)
+			ctx.closePath()
+			ctx.stroke()
+			ctx.fillStyle = 'blue'
+			ctx.fill()
+			ctx.restore()
+		}
+		// 检查边界值
+		function check() {
+			dynamicEndAngle += speed
+			if (dynamicEndAngle === 360) {
+				dynamicEndAngle = 0
+			}
+			if (dynamicEndAngle === end) {
+				dynamicEndAngle = end
+				ifDraw = false
+			}
+		}
+
+		function scale() {
+		}
+
+		function draw() {
+			if (!ifDraw) {
+				return false
+			}
+			ctx.clearRect(0, 0, width, height)
+			check()
+			drawArc()
+			drawModuleArc()
+			// ifDraw = false
+			requestAnimationFrame(draw)
+		}
+		draw()
+	</script>
+</body>
+</html>
