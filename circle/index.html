@@ -45,7 +45,7 @@
 		  arcH = height * scale
 		let ifDraw = true
 		canvas.width = width
-		canvas.height = height + 30
+		canvas.height = height + 330
 		ctx.lienJoin = 'round'
 		ctx.lineCap = 'round'
 		ctx.lineWidth = 1
@@ -55,7 +55,6 @@
 			ctx.scale(smallScale, smallScale)
 			ctx.beginPath()
 			ctx.arc(arcW, arcH, outRadius, startAngle, endAngle, true)
-			ctx.stroke()
 			ctx.arc(arcW, arcH, insideRadius, endAngle, startAngle, false)
 			ctx.closePath()
 			ctx.stroke()
@@ -72,11 +71,10 @@
 			ctx.scale(smallScale, smallScale)
 			ctx.beginPath()
 			ctx.arc(arcW, arcH, outRadius, getAngle(dynamicStartAngle), getAngle(dynamicEndAngle), false)
-			ctx.stroke()
 			ctx.arc(arcW, arcH, insideRadius, getAngle(dynamicEndAngle), getAngle(dynamicStartAngle), true)
 			ctx.closePath()
 			ctx.stroke()
-			ctx .fillStyle = 'blue'
+			ctx.fillStyle = 'blue'
 			ctx.fill()
 			ctx.restore()
 		}
@@ -100,8 +98,8 @@
 			ctx.clearRect(0, 0, width, height + 30)
 			check()
 			drawArc()
-			drawModuleArc()
-			requestAnimationFrame(draw)
+			// drawModuleArc()
+			// requestAnimationFrame(draw)
 		}
 		draw()
 	</script>

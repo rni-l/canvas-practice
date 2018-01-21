@@ -2,14 +2,44 @@
 
 > 用 canvas 画出圆弧的动画效果
 
-## ctx.arc
+## 绘制圆弧
 
 使用 ctx.arc 就可以画出你想要的度数的圆弧
 
 ```
 // 接受三个参数，x、y 位置，半径，开始弧度和结束度数，是否顺时针
 ctx.arc(arcW, arcH, outRadius, startAngle, endAngle, true)
+
+// 源码
+ctx.save()
+ctx.scale(smallScale, smallScale)
+ctx.beginPath()
+ctx.arc(arcW, arcH, outRadius, startAngle, endAngle, true)
+ctx.arc(arcW, arcH, insideRadius, endAngle, startAngle, false)
+ctx.closePath()
+ctx.stroke()
+ctx.fillStyle = 'red'
+ctx.fill()
+ctx.restore()
+
 ```
+
+beginPath、closePath 这两个的作用要明白。beginPath 是声明一个开始的路径，closePath 是把路径合并起来。
+
+上面的代码，先 beginPath 再画圆，然后再次画圆弧，这样的话，两个圆弧之间会有一边被合并，然后再 closePath，关闭路径，两个圆弧就回完整合并。
+
+如果只想弄出两条圆弧的效果
+
+```
+ctx.beginPath()
+ctx.arc(arcW, arcH, outRadius, startAngle, endAngle, true)
+ctx.beginPath()
+ctx.arc(arcW, arcH, insideRadius, endAngle, startAngle, false)
+```
+
+再次使用 beginPath 就好了
+
+## 减少锯齿方法
 
 如果使用 ctx.arc 画出一个圆弧，其实是有锯齿的，这里使用一种放大缩小的做法，令锯齿尽量减少。先把要画的物体的值，乘以 5 倍，然后在画之前，使用 `ctx.scale` 进行缩小，达到减少锯齿的效果。
 
