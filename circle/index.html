@@ -10,17 +10,23 @@
 		.box {
 			padding:  50px;
 		}
+		.btn {
+			width: 50px;height: 50px;background: grey;line-height: 50px;text-align: center;
+			margin:  50px;cursor: pointer;
+		}
 	</style>
 </head>
 <body>
 	<div class="box">
 		<canvas id='canvas' width=300 height=130></canvas>
 	</div>
+	<div class="btn">next</div>
 	<script>
 		// 公共方法
 		function getAngle(degree) {
 			return (Math.PI / 180) * degree
 		}
+		const oBtn = document.querySelector('.btn')
 		const canvas = document.querySelector('#canvas')
 		const ctx = canvas.getContext('2d')
 		// 定义默认值
@@ -28,8 +34,8 @@
 		const height = 130
 		// 度数
 		let start = 170,
-		  end = 10
-		const speed = 1
+		  end = 370
+		const speed = 3
 		const scale = 5
 		const smallScale = 1 / scale
 		// 外圆
@@ -43,7 +49,15 @@
 		  dynamicEndAngle = start
 		const arcW = width / 2 * scale,
 		  arcH = height * scale
-		let ifDraw = true
+		let ifDraw = false
+    // 分成 5 个部分
+    const space = 4
+    let step = 0
+    const all = end - start
+    // 每次结束的值
+    let stepEnd = 0
+
+
 		canvas.width = width
 		canvas.height = height + 330
 		ctx.lienJoin = 'round'
@@ -82,11 +96,8 @@
 		// 检查边界值
 		function check() {
 			dynamicEndAngle += speed
-			if (dynamicEndAngle === 360) {
-				dynamicEndAngle = 0
-			}
-			if (dynamicEndAngle === end) {
-				dynamicEndAngle = end
+			if (dynamicEndAngle >= stepEnd) {
+				dynamicEndAngle = stepEnd
 				ifDraw = false
 			}
 		}
@@ -98,10 +109,21 @@
 			ctx.clearRect(0, 0, width, height + 30)
 			check()
 			drawArc()
-			// drawModuleArc()
-			// requestAnimationFrame(draw)
+			drawModuleArc()
+			requestAnimationFrame(draw)
 		}
-		draw()
+		drawArc()
+		oBtn.onclick = () => {
+			if (ifDraw || step === 5) {
+				return false
+			}
+			step += 1
+			console.log(step)
+			stepEnd = step * all / space + start
+			ifDraw = true
+			console.log(stepEnd)
+			draw()
+		}
 	</script>
 </body>
 </html>
