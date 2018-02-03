@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Document</title>
+  <style>
+    *{margin: 0;padding:0}
+  </style>
+  <script src='fabric.js'></script>
+</head>
+<body>
+    <canvas id='test' width="550" height="520"></canvas>
+    <div id='btn'>testeststst</div>
+    <script>
+        var canvas = new fabric.Canvas('test', {
+          selection: false,
+          uniScaleTransform: true
+        })
+
+        var ifDown, origX, origY, ifCanCreate
+        var ifFirst = false
+        var simulatedBox, txt
+        var type = ''
+        var aRect = [],
+          aText = [],
+          aLabel = [],
+          _target = false,
+          targetIndex = -1
+        var width = 550,
+          height = 520,
+          strokeWidth = 2,
+          id = 1
+        var line = new fabric.Path(`M 0 0 L ${width} 0 z`, {
+          stroke: 'red'
+        })
+        var column = new fabric.Path(`M 0 0 L 0 ${height} z`, {
+          stroke: 'red'
+        })
+        canvas.add(line)
+        canvas.add(column)
+
+        canvas.on('mouse:over', (e) => {
+          if (e.target && e.target.get('type') === 'text') {
+            console.log(e.target)
+            e.target.set({ fontSize: 20 })
+          }
+        })
+        canvas.on('mouse:out', (e) => {
+          if (e.target && e.target.get('type') === 'text') {
+            console.log(e.target)
+            e.target.set({ fontSize: 12 })
+          }
+        })
+
+        // canvas.on('mouse:move', (o) => {
+        //   createLine(o.e)
+        //   createColumn(o.e)
+        //   canvas.renderAll()
+        // })
+
+        canvas.on('mouse:down', function(o){
+          const clickType = (o.target && o.target.get('type')) || false
+          if (clickType === 'group' || clickType === 'rect' || clickType === 'text') {
+            if (clickType === 'rect') {
+              _target = o.target
+            }
+            return false
+          }
+          _target = false
+          var pointer = canvas.getPointer(o.e)
+          origX = pointer.x
+          origY = pointer.y
+          ifDown = true
+          simulatedBox = new fabric.Rect({
+            left: origX,
+            top: origY,
+            originX: 'left',
+            originY: 'top',
+            width: pointer.x - origX,
+            height: pointer.y - origY,
+            fill: 'rgba(255,0,0,0)',
+            stroke: '#838383',
+            strokeWidth: 2
+          })
+          canvas.add(simulatedBox)
+        })
+
+        canvas.on('mouse:move', function(o){
+          if (ifDown) {
+            const pointer = canvas.getPointer(o.e)
+
+            if (origX > pointer.x) {
+              simulatedBox.set({ left: Math.abs(pointer.x) })
+            }
+            if (origY > pointer.y) {
+              simulatedBox.set({ top: Math.abs(pointer.y) })
+            }
+            const boxWidth = Math.abs(origX - pointer.x)
+            const boxHeight = Math.abs(origY - pointer.y)
+            simulatedBox.set({ width: boxWidth })
+            simulatedBox.set({ height: boxHeight })
+
+            // 根据移动的距离，判断是否可以生成选择框
+            if (boxWidth >= 5 && boxHeight >= 5) {
+              ifCanCreate = true
+            }
+            type = 'move'
+            canvas.renderAll()
+          } else if (_target) {
+            // console.log(_target.getScaledWidth(), _target.getScaledHeight())
+          }
+        })
+
+        canvas.on('mouse:up', function(o){
+          if (ifDown && ifCanCreate) {
+            ifDown = false
+            ifCanCreate = false
+            var pointer = canvas.getPointer(o.e)
+            const { x, y } =  computingGroupPos(origX, origY, pointer.x, pointer.y)
+            const rect = new fabric.Rect({
+              id,
+              name: 'rect',
+              width: pointer.x - origX,
+              height: pointer.y - origY,
+              left: x,
+              top: y,
+              fill: 'rgba(255,0,0,0)'
+            })
+            const label = new fabric.Rect({
+              id,
+              name: 'label',
+              width: pointer.x - origX,
+              height: pointer.y - origY,
+              left: x,
+              top: y,
+              fill: 'rgba(255,0,0,0)',
+              hasBorders: false,
+              hasControl: false,
+              selectable: false,
+              strokeWidth,
+              stroke: '#838383'
+            })
+            id += 1
+            const text = createTxt(x, y)
+            canvas.remove(simulatedBox)
+            aLabel.push(label)
+            aRect.push(rect)
+            canvas.add(label)
+            canvas.add(rect)
+            canvas.add(text)
+          }
+          ifDown = false
+          ifCanCreate = false
+          _target = false
+          origX = 0
+          origY = 0
+          canvas.remove(simulatedBox)
+          type = 'up'
+          canvas.renderAll()
+        })
+
+        canvas.on('before:render', () => {
+          updateLabel()
+        })
+
+        canvas.on('after:render', () => {
+        })
+
+        canvas.on('object:scaling', (e) => {
+          // target = e.target;
+          // type = 'scaling'
+          // console.log('scaling')
+          // if (type === 'scaling') {
+          //   const o = target
+          //     if (!o.strokeWidthUnscaled && o.strokeWidth) {
+          //     o.strokeWidthUnscaled = o.strokeWidth;
+          //   }
+          //   if (o.strokeWidthUnscaled) {
+          //     o.strokeWidth = o.strokeWidthUnscaled / o.scaleX;
+          //   }
+          // }
+        })
+
+        function updateLabel() {
+          const o = canvas.getActiveObject()
+          if (o) {
+            const label = getObj(o.id, 'aLabel').obj
+            // 修改 label 的 top left width height
+            const bound = o.getBoundingRect()
+            console.log(label, o)
+            label.setCoords()
+            label.set({
+              left: o.left,
+              top: o.top,
+              width: o.getScaledWidth(),
+              height: o.getScaledHeight()
+            })
+            // canvas.requestRenderAll()
+          }
+        }
+
+        function getObj(id, type) {
+          let t = false
+          let index = -1
+          window[type].some((v, i) => {
+            if (v.id === id) {
+              t = v
+              index = i
+              return true
+            }
+          })
+          return {
+            obj: t,
+            index
+          }
+        }
+
+        function computingGroupPos(oX, oY, upX, upY) {
+          // 画出的线的宽度，修正位置
+          let groupX = oX
+          let groupY = oY
+          // 以起点为中心
+          if (oX >= upX && oY >= upY) {
+            // 第四象限
+            groupX = upX + strokeWidth
+            groupY = upY + strokeWidth
+          } else if (oX <= upX && oY >= upY) {
+            // 第一象限
+            groupY = upY + strokeWidth
+          } else if (oX <= upX && oY <= upY) {
+            // 第二象限
+          } else if (oX >= upX && oY <= upY) {
+            // 第三象限
+            groupX = upX + strokeWidth
+          }
+          return {
+            x: groupX,
+            y: groupY
+          }
+        }
+
+        // 生成文字
+        function createTxt(left, top) {
+          return new fabric.Text('hello', {
+            fontSize: 12,
+            left: left + strokeWidth,
+            top: top + strokeWidth
+          })
+        }
+
+        // 生成坐标系
+        function createColumn(e) {
+          column.set({
+            left: e.clientX,
+            top: 0,
+          })
+        }
+
+        function createLine(e) {
+          line.set({
+            left: 0,
+            top: e.clientY
+          })
+        }
+    </script>
+</body>
+</html>

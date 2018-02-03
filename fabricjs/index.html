@@ -1,62 +1,137 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-	<meta charset="UTF-8">
-	<title>Document</title>
+    <meta charset="UTF-8">
+    <title>Document</title>
   <style>
-  	*{margin: 0;padding:0;}
+    *{margin: 0;padding:0}
   </style>
   <script src='fabric.js'></script>
 </head>
 <body>
-	<canvas id='test' width="550" height="520"></canvas>
-	<script>
-		var canvas = new fabric.Canvas('test', { selection: false });
+    <canvas id='test' width="550" height="520"></canvas>
+    <div id='btn'>testeststst</div>
+    <script>
+        var canvas = new fabric.Canvas('test', { selection: false })
 
-var rect, isDown, origX, origY;
+        var rect, isDown, origX, origY
+        var ifFirst = false
+        var model, txt
+        var group
+        var width = 550,
+          height = 520
+        var line = new fabric.Path(`M 0 0 L ${width} 0 z`, {
+          stroke: 'red'
+        })
+        var column = new fabric.Path(`M 0 0 L 0 ${height} z`, {
+          stroke: 'red'
+        })
+        canvas.add(line)
+        canvas.add(column)
 
-canvas.on('mouse:down', function(o){
-    isDown = true;
-    var pointer = canvas.getPointer(o.e);
-    origX = pointer.x;
-    origY = pointer.y;
-    var pointer = canvas.getPointer(o.e);
-    rect = new fabric.Rect({
-        left: origX,
-        top: origY,
-        originX: 'left',
-        originY: 'top',
-        width: pointer.x-origX,
-        height: pointer.y-origY,
-        angle: 0,
-        fill: 'rgba(255,0,0,0.5)',
-        transparentCorners: false
-    });
-    canvas.add(rect);
-});
+        canvas.on('mouse:over', (e) => {
+          if (e.target) {
+            console.log(e.target)
+            e.target._objects[0].set({ fontSize: 20 })
+          }
+        })
+        canvas.on('mouse:out', (e) => {
+          if (e.target) {
+            console.log(e.target)
+            e.target._objects[0].set({ fontSize: 12 })
+          }
+        })
 
-canvas.on('mouse:move', function(o){
-    if (!isDown) return;
-    var pointer = canvas.getPointer(o.e);
+        canvas.on('mouse:move', (o) => {
+          createLine(o.e)
+          createColumn(o.e)
+          canvas.renderAll()
+        })
 
-    if(origX>pointer.x){
-        rect.set({ left: Math.abs(pointer.x) });
-    }
-    if(origY>pointer.y){
-        rect.set({ top: Math.abs(pointer.y) });
-    }
+        canvas.on('mouse:down', function(o){
+          console.log(o.target)
+          if (o.target) {
+            return false
+          }
+          var pointer = canvas.getPointer(o.e)
+          origX = pointer.x
+          origY = pointer.y
+          isDown = true
+          model = new fabric.Rect({
+            left: origX,
+            top: origY,
+            originX: 'left',
+            originY: 'top',
+            width: pointer.x-origX,
+            height: pointer.y-origY,
+            angle: 0,
+            fill: 'rgba(255,0,0,0.5)',
+            hasControls: true
+          })
+          canvas.add(model)
+        })
 
-    rect.set({ width: Math.abs(origX - pointer.x) });
-    rect.set({ height: Math.abs(origY - pointer.y) });
+        canvas.on('mouse:move', function(o){
+            if (!isDown) return
+            var pointer = canvas.getPointer(o.e)
+
+            if(origX>pointer.x){
+                model.set({ left: Math.abs(pointer.x) })
+            }
+            if(origY>pointer.y){
+                model.set({ top: Math.abs(pointer.y) })
+            }
+
+            model.set({ width: Math.abs(origX - pointer.x) })
+            model.set({ height: Math.abs(origY - pointer.y) })
 
 
-    canvas.renderAll();
-});
+            canvas.requestRenderAll()
+        })
 
-canvas.on('mouse:up', function(o){
-  isDown = false;
-});
+        canvas.on('mouse:up', function(o){
+          if (!isDown) {
+            return false
+          }
+          isDown = false
+          var pointer = canvas.getPointer(o.e)
+          rect = new fabric.Rect({
+            width: pointer.x - origX,
+            height: pointer.y - origY,
+            angle: 0,
+            fill: 'rgba(255,0,0,0.5)',
+            hasControls: true
+          })
+          createTxt(origX, origY)
+          canvas.remove(model)
+          group = new fabric.Group([txt, rect], {
+            left: origX,
+            top: origY
+          })
+          canvas.add(group)
+        })
 
-	</script>
+        // 生成文字
+        function createTxt(left, top) {
+          // , { left: left + 2, top: top + 2 }
+          txt = new fabric.Text('hello', {
+            fontSize: 12
+          })
+        }
+
+        // 生成坐标系
+        function createColumn(e) {
+          column.set({
+            left: e.clientX,
+            top: 0,
+          })
+        }
+        function createLine(e) {
+          line.set({
+            left: 0,
+            top: e.clientY
+          })
+        }
+    </script>
 </body>
 </html>

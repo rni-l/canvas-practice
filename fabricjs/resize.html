@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Document</title>
+  <script src='fabric.js'></script>
+</head>
+<body>
+  <canvas id='test' width="550" height="520"></canvas>
+    <div id='btn'>testeststst</div>
+  <script>
+    var canvas = new fabric.Canvas('test', { selection: false });
+    window.canvas = canvas;
+    const rect = new fabric.Rect({ 
+      width: 50, 
+      height: 50, 
+      fill: '#faa', 
+      originX: 'left', 
+      originY: 'top',
+      stroke: "#000",
+      strokeWidth: 1,
+        centeredRotation: true
+    })
+    canvas.add(rect);
+
+    canvas.on('object:scaling', (e) => {
+      var o = e.target;
+      if (!o.strokeWidthUnscaled && o.strokeWidth) {
+        o.strokeWidthUnscaled = o.strokeWidth;
+      }
+      if (o.strokeWidthUnscaled) {
+        o.strokeWidth = o.strokeWidthUnscaled / o.scaleX;
+      }
+    })
+  </script>
+</body>
+</html>

@@ -1,0 +1,44 @@
+ <html>
+<head>
+    <title>Basic usage</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/1.7.3/fabric.min.js"></script>
+
+</head>
+<body>
+<canvas id="canvas" style= "border: 1px solid black" height= 480 width = 360></canvas>
+<script>
+ var canvas = new fabric.Canvas('canvas');
+  canvas.add(new fabric.Circle({ radius: 30, fill: '#f55', top: 100, left: 100 }));
+
+  canvas.item(0).set({
+    borderColor: 'gray',
+    cornerColor: 'black',
+    cornerSize: 12,
+    transparentCorners: true
+  });
+  canvas.setActiveObject(canvas.item(0));
+  canvas.renderAll();
+
+
+  canvas.on('object:moving', function (e) {
+        var obj = e.target;
+         // if object is too big ignore
+        if(obj.currentHeight > obj.canvas.height || obj.currentWidth > obj.canvas.width){
+            return;
+        }        
+        obj.setCoords();        
+        // top-left  corner
+        if(obj.getBoundingRect().top < 0 || obj.getBoundingRect().left < 0){
+            obj.top = Math.max(obj.top, obj.top-obj.getBoundingRect().top);
+            obj.left = Math.max(obj.left, obj.left-obj.getBoundingRect().left);
+        }
+        // bot-right corner
+        if(obj.getBoundingRect().top+obj.getBoundingRect().height  > obj.canvas.height || obj.getBoundingRect().left+obj.getBoundingRect().width  > obj.canvas.width){
+            obj.top = Math.min(obj.top, obj.canvas.height-obj.getBoundingRect().height+obj.top-obj.getBoundingRect().top);
+            obj.left = Math.min(obj.left, obj.canvas.width-obj.getBoundingRect().width+obj.left-obj.getBoundingRect().left);
+        }
+});
+
+</script>
+</body>
+</html>
