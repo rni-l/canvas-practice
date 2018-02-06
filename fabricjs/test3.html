@@ -10,7 +10,6 @@
 </head>
 <body>
     <canvas id='test' width="550" height="520"></canvas>
-    <div id='btn'>testeststst</div>
     <script>
         var canvas = new fabric.Canvas('test', {
           selection: false,
@@ -22,7 +21,7 @@
         var simulatedBox, txt
         var type = ''
         var aRect = [],
-          aText = [],
+          aTxt = [],
           aLabel = [],
           _target = false,
           targetIndex = -1
@@ -52,11 +51,11 @@
           }
         })
 
-        // canvas.on('mouse:move', (o) => {
-        //   createLine(o.e)
-        //   createColumn(o.e)
-        //   canvas.renderAll()
-        // })
+        canvas.on('mouse:move', (o) => {
+          createLine(o.e)
+          createColumn(o.e)
+          canvas.renderAll()
+        })
 
         canvas.on('mouse:down', function(o){
           const clickType = (o.target && o.target.get('type')) || false
@@ -140,10 +139,12 @@
               strokeWidth,
               stroke: '#838383'
             })
-            id += 1
             const text = createTxt(x, y)
+            text.id = id
+            id += 1
             canvas.remove(simulatedBox)
             aLabel.push(label)
+            aTxt.push(text)
             aRect.push(rect)
             canvas.add(label)
             canvas.add(rect)
@@ -163,31 +164,24 @@
           updateLabel()
         })
 
-        canvas.on('after:render', () => {
-        })
-
-        canvas.on('object:scaling', (e) => {
-          // target = e.target;
-          // type = 'scaling'
-          // console.log('scaling')
-          // if (type === 'scaling') {
-          //   const o = target
-          //     if (!o.strokeWidthUnscaled && o.strokeWidth) {
-          //     o.strokeWidthUnscaled = o.strokeWidth;
-          //   }
-          //   if (o.strokeWidthUnscaled) {
-          //     o.strokeWidth = o.strokeWidthUnscaled / o.scaleX;
-          //   }
-          // }
-        })
+        // canvas.on('object:scaling', () => {
+        //   const o = canvas.getActiveObject()
+        //   console.log(o.strokeWidthUnscaled, o.strokeWidth)
+        //   if (!o.strokeWidthUnscaled && o.strokeWidth) {
+        //      o.strokeWidthUnscaled = o.strokeWidth;
+        //    }
+        //    if (o.strokeWidthUnscaled) {
+        //      o.strokeWidth = o.strokeWidthUnscaled / o.scaleX;
+        //    }
+        // })
 
         function updateLabel() {
           const o = canvas.getActiveObject()
           if (o) {
             const label = getObj(o.id, 'aLabel').obj
+            const txt = getObj(o.id, 'aTxt').obj
             // 修改 label 的 top left width height
             const bound = o.getBoundingRect()
-            console.log(label, o)
             label.setCoords()
             label.set({
               left: o.left,
@@ -195,7 +189,10 @@
               width: o.getScaledWidth(),
               height: o.getScaledHeight()
             })
-            // canvas.requestRenderAll()
+            txt.set({
+              left: o.left,
+              top: o.top
+            })
           }
         }
 
